@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: payflow-postgres
+    environment:
+      POSTGRES_DB: payflow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - payflow-postgres-data:/var/lib/postgresql/data
+
+  payment-service:
+    build: .
+    container_name: payflow-payment-service
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/payflow
+      DB_USERNAME: postgres
+      DB_PASSWORD: admin
+
+volumes:
+  payflow-postgres-data:
