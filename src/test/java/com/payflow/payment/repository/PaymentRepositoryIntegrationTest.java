@@ -35,6 +35,10 @@ class PaymentRepositoryIntegrationTest {
     @Test
     void shouldSaveAndRetrievePayment() {
 
+        System.out.println(postgres.getJdbcUrl());
+        System.out.println(postgres.getUsername());
+        System.out.println(postgres.getPassword());
+
         UUID paymentId = UUID.randomUUID();
 
         Payment payment = new Payment();
