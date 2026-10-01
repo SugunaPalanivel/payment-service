@@ -7,6 +7,8 @@ import com.payflow.payment.entity.PaymentStatus;
 import com.payflow.payment.exception.PaymentNotFoundException;
 import com.payflow.payment.exception.PaymentStateException;
 import com.payflow.payment.repository.PaymentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,8 @@ import java.util.UUID;
 
 @Service
 public class PaymentService {
-
+    private static final Logger log =
+            LoggerFactory.getLogger(PaymentService.class);
     private final PaymentRepository paymentRepository;
 
     public PaymentService(PaymentRepository paymentRepository) {
@@ -26,7 +29,11 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse createPayment(CreatePaymentRequest request) {
-
+        log.info(
+                "Creating payment amount={} currency={}",
+                request.amount(),
+                request.currency()
+        );
         Payment payment = new Payment();
 
         payment.setId(UUID.randomUUID());
@@ -42,7 +49,11 @@ public class PaymentService {
         payment.setUpdatedAt(now);
 
         Payment savedPayment = paymentRepository.save(payment);
-
+        log.info(
+                "Payment created successfully reference={} status={}",
+                savedPayment.getPaymentReference(),
+                savedPayment.getStatus()
+        );
         return toResponse(savedPayment);
     }
 
@@ -83,11 +94,15 @@ public class PaymentService {
 
     @Transactional
     public PaymentResponse cancelPayment(UUID id) {
-
+        log.info("Cancelling payment id={}", id);
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new PaymentNotFoundException(id));
 
         if (payment.getStatus() == PaymentStatus.COMPLETED) {
+            log.warn(
+                    "Cancellation rejected for completed payment id={}",
+                    id
+            );
             throw new PaymentStateException(
                     "Completed payments cannot be cancelled"
             );
